@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Ambiente virtual / segredos (Etapa 2 — colega)
+.venv/
+.env
+
+# Dados e modelos: versionados via DVC (Etapa 3 — colega).
+# Ignoramos o CONTEÚDO mas mantemos as pastas via .gitkeep.
+data/raw/*
+data/processed/*
+models/*
+!**/.gitkeep
+
+# MLflow (Etapa 3/4)
+mlruns/
+mlflow.db
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/

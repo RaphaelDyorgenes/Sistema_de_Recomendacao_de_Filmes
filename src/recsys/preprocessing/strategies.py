@@ -36,25 +36,26 @@ class LabelEncodeStrategy(PreprocessingStrategy):
 
     Redes neurais indexam embeddings por posição, então ids como
     ``[10, 5000, 73]`` precisam virar ``[0, 1, 2]``. O mapa é aprendido no
-    ``fit`` e reaplicado de forma determinística no ``transform``.
+    ``fit`` (usando Scikit-Learn) e reaplicado de forma determinística no ``transform``.
     """
 
     _UNKNOWN = -1
 
     def __init__(self) -> None:
-        """Inicializa o mapa vazio (preenchido em ``fit``)."""
-        self._mapping: dict[int, int] = {}
+        """Inicializa o encoder do Scikit-Learn."""
+        from sklearn.preprocessing import LabelEncoder
+
+        self._encoder = LabelEncoder()
+        self._fitted = False
 
     def fit(self, values: Sequence[int]) -> None:
         """Constrói o mapa id-bruto -> índice contíguo.
 
-        A ordenação dos ids únicos torna o mapa estável entre execuções.
-
         Args:
             values: Valores brutos de treino.
         """
-        unique_sorted = sorted(set(values))
-        self._mapping = {raw: idx for idx, raw in enumerate(unique_sorted)}
+        self._encoder.fit(values)
+        self._fitted = True
 
     def transform(self, values: Sequence[int]) -> list[int]:
         """Substitui cada id pelo seu índice; desconhecidos viram ``-1``.
@@ -65,7 +66,21 @@ class LabelEncodeStrategy(PreprocessingStrategy):
         Returns:
             Índices contíguos correspondentes.
         """
-        return [self._mapping.get(value, self._UNKNOWN) for value in values]
+        if not self._fitted:
+            return [self._UNKNOWN] * len(values)
+
+        known_classes = set(self._encoder.classes_)
+        # Substituímos os OOV por uma classe conhecida temporariamente para o transform não falhar
+        safe_values = [
+            v if v in known_classes else self._encoder.classes_[0] for v in values
+        ]
+
+        encoded = self._encoder.transform(safe_values)
+
+        return [
+            int(e) if orig in known_classes else self._UNKNOWN
+            for e, orig in zip(encoded, values, strict=True)
+        ]
 
     @property
     def vocabulary_size(self) -> int:
@@ -74,4 +89,6 @@ class LabelEncodeStrategy(PreprocessingStrategy):
         Returns:
             Tamanho do vocabulário, útil para dimensionar embeddings.
         """
-        return len(self._mapping)
+        if not self._fitted:
+            return 0
+        return len(self._encoder.classes_)

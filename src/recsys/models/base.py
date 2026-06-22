@@ -2,6 +2,8 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from pathlib import Path
+from typing import Any
 
 
 class RecommenderModel(ABC):
@@ -31,3 +33,41 @@ class RecommenderModel(ABC):
         Returns:
             Ids de item ordenados por relevância decrescente.
         """
+
+    def save(self, path: Path) -> None:
+        """Persiste o modelo em disco.
+
+        A implementação padrão usa ``pickle``; subclasses PyTorch devem
+        sobrescrever para usar ``torch.save``.
+
+        Args:
+            path: Caminho do arquivo de saída.
+        """
+        import pickle
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("wb") as f:
+            pickle.dump(self, f)
+
+    @classmethod
+    def load(cls, path: Path) -> "RecommenderModel":
+        """Carrega um modelo previamente salvo com ``save``.
+
+        Args:
+            path: Caminho do arquivo serializado.
+
+        Returns:
+            Instância do modelo reconstruída.
+        """
+        import pickle
+
+        with path.open("rb") as f:
+            return pickle.load(f)  # noqa: S301
+
+    def get_hparams(self) -> dict[str, Any]:
+        """Retorna hiperparâmetros para logging (MLflow, etc.).
+
+        Returns:
+            Dicionário vazio por padrão; subclasses sobrescrevem.
+        """
+        return {}

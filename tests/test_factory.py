@@ -1,6 +1,7 @@
 import pytest
 
-from recsys.models import ModelFactory, PopularityRecommender
+from recsys.models.factory import ModelFactory
+from recsys.models.popularity import PopularityRecommender
 
 
 def test_cria_modelo_registrado():

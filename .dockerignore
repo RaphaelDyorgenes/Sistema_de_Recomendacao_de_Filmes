@@ -1,0 +1,17 @@
+.git/
+.gitignore
+.venv/
+.env
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+*.egg-info/
+mlruns/
+mlflow.db
+notebooks/
+tests/
+.DS_Store
+.vscode/
+.idea/
+*.md

@@ -1,0 +1,52 @@
+stages:
+  preprocess:
+    cmd: python -m recsys.data.preprocess
+    deps:
+      - src/recsys/data/preprocess.py
+      - src/recsys/preprocessing/strategies.py
+      - src/recsys/utils/config.py
+      - data/raw/rating.csv
+    outs:
+      - data/processed/train.csv
+      - data/processed/val.csv
+      - data/processed/test.csv
+      - data/processed/encoders.pkl
+      - data/processed/metadata.json
+
+  feature_eng:
+    cmd: python -m recsys.data.feature_eng
+    deps:
+      - src/recsys/data/feature_eng.py
+      - data/processed/train.csv
+      - data/processed/metadata.json
+    outs:
+      - data/processed/train_with_negatives.csv
+
+  train:
+    cmd: python -m recsys.training.train
+    deps:
+      - src/recsys/training/train.py
+      - src/recsys/training/trainer.py
+      - src/recsys/models/ncf.py
+      - src/recsys/data/dataset.py
+      - data/processed/train_with_negatives.csv
+      - data/processed/val.csv
+      - data/processed/metadata.json
+    outs:
+      - models/ncf_model.pt
+      - models/ncf_best.pt
+
+  evaluate:
+    cmd: python -m recsys.evaluation.evaluate
+    deps:
+      - src/recsys/evaluation/evaluate.py
+      - src/recsys/evaluation/metrics.py
+      - src/recsys/models/ncf.py
+      - src/recsys/models/popularity.py
+      - models/ncf_model.pt
+      - data/processed/test.csv
+      - data/processed/train.csv
+      - data/processed/metadata.json
+    metrics:
+      - models/evaluation_report.json:
+          cache: false

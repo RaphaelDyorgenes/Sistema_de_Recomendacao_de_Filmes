@@ -1,8 +1,5 @@
-from recsys.preprocessing import (
-    IdentityStrategy,
-    LabelEncodeStrategy,
-    PreprocessingPipeline,
-)
+from recsys.preprocessing.pipeline import PreprocessingPipeline
+from recsys.preprocessing.strategies import IdentityStrategy, LabelEncodeStrategy
 
 
 def test_identity_nao_altera_valores():

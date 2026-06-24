@@ -146,7 +146,7 @@ def run(
     mlflow.set_experiment(settings.mlflow_experiment_name)
 
     with mlflow.start_run(run_name="evaluation"):
-        mlflow.log_metrics(all_metrics)
+        mlflow.log_metrics({k.replace("@", "_at_"): v for k, v in all_metrics.items()})
 
     # ── Salvar relatório ────────────────────────────────────────
     report_path = models_dir / "evaluation_report.json"

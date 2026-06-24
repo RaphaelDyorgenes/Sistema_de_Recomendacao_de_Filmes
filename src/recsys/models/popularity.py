@@ -33,7 +33,8 @@ class PopularityRecommender(RecommenderModel):
         x_dummy = np.zeros((len(item_ids), 1))
         self._clf.fit(x_dummy, item_ids)
 
-        # A propriedade class_prior_ contém a frequência de cada item listado em classes_
+        # A propriedade class_prior_ contém a frequência de cada item
+        # listado em classes_
         priors = self._clf.class_prior_
         classes = self._clf.classes_
 

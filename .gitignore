@@ -15,6 +15,7 @@ data/raw/*
 data/processed/*
 models/*
 !**/.gitkeep
+!**/*.dvc
 
 # MLflow (Etapa 3/4)
 mlruns/

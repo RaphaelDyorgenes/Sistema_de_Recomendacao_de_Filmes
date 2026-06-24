@@ -1,0 +1,142 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python -m recsys.data.preprocess
+    deps:
+    - path: data/raw/rating.csv
+      hash: md5
+      md5: 39c820890d22d80cfad7e54f38326937
+      size: 690353377
+    - path: src/recsys/data/preprocess.py
+      hash: md5
+      md5: 85b63bfaf6f418d5ac8a4ff73420104e
+      size: 4984
+    - path: src/recsys/preprocessing/strategies.py
+      hash: md5
+      md5: d53c11b44ac78a01a3334a2eb350d45a
+      size: 2888
+    - path: src/recsys/utils/config.py
+      hash: md5
+      md5: 23685380ca1991f7b0e6c7278d66ab6f
+      size: 2482
+    outs:
+    - path: data/processed/encoders.pkl
+      hash: md5
+      md5: 3a50fd1ebb2c2a86939b2d0a61d5cae3
+      size: 360090
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 5c5ae65936bc1092d9c421ad9258009c
+      size: 59
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 5973ef85eb6b799cb256d81f5a994cba
+      size: 164116
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 82a98a255bea0cd65899fdca93fbfee7
+      size: 514611
+    - path: data/processed/val.csv
+      hash: md5
+      md5: 28c4706d36d3d93036b74c3e6f84ca82
+      size: 130965
+  feature_eng:
+    cmd: python -m recsys.data.feature_eng
+    deps:
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 6f377595c8cabd2e70ac7f83dfc7a09e
+      size: 141
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 82a98a255bea0cd65899fdca93fbfee7
+      size: 514611
+    - path: src/recsys/data/feature_eng.py
+      hash: md5
+      md5: 31c1c82ff0d8eaad43b06bd46ad90792
+      size: 3680
+    outs:
+    - path: data/processed/train_with_negatives.csv
+      hash: md5
+      md5: 4085c149b889b4aea4f5821799245e95
+      size: 2629678
+  train:
+    cmd: python -m recsys.training.train
+    deps:
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 6f377595c8cabd2e70ac7f83dfc7a09e
+      size: 141
+    - path: data/processed/train_with_negatives.csv
+      hash: md5
+      md5: 4085c149b889b4aea4f5821799245e95
+      size: 2629678
+    - path: data/processed/val.csv
+      hash: md5
+      md5: 28c4706d36d3d93036b74c3e6f84ca82
+      size: 130965
+    - path: src/recsys/data/dataset.py
+      hash: md5
+      md5: 12857bc0172f697ad276deae8abeb0a8
+      size: 1468
+    - path: src/recsys/models/ncf.py
+      hash: md5
+      md5: 56b2b86fec92555bb73d0217e95f29c6
+      size: 6251
+    - path: src/recsys/training/train.py
+      hash: md5
+      md5: 1a30a1e48e710aa84e3589f9987b21a6
+      size: 4485
+    - path: src/recsys/training/trainer.py
+      hash: md5
+      md5: bc9bf691d96ca0b508d5eb048a4ee746
+      size: 6106
+    outs:
+    - path: models/ncf_best.pt
+      hash: md5
+      md5: 7a9e17b0c68a52ad9466f42a5da1efca
+      size: 5785989
+    - path: models/ncf_model.pt
+      hash: md5
+      md5: 7a9e17b0c68a52ad9466f42a5da1efca
+      size: 5785989
+  evaluate:
+    cmd: python -m recsys.evaluation.evaluate
+    deps:
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 6f377595c8cabd2e70ac7f83dfc7a09e
+      size: 141
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 5973ef85eb6b799cb256d81f5a994cba
+      size: 164116
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 82a98a255bea0cd65899fdca93fbfee7
+      size: 514611
+    - path: models/ncf_model.pt
+      hash: md5
+      md5: 7a9e17b0c68a52ad9466f42a5da1efca
+      size: 5785989
+    - path: src/recsys/evaluation/evaluate.py
+      hash: md5
+      md5: 37bb8c08d3f9ba06b8d63728f94c0a3c
+      size: 6020
+    - path: src/recsys/evaluation/metrics.py
+      hash: md5
+      md5: 937f5276ee25cbdd53d04116f536d9b6
+      size: 4029
+    - path: src/recsys/models/ncf.py
+      hash: md5
+      md5: 56b2b86fec92555bb73d0217e95f29c6
+      size: 6251
+    - path: src/recsys/models/popularity.py
+      hash: md5
+      md5: cc725389dd021f59d1d4d64d685dd184
+      size: 2003
+    outs:
+    - path: models/evaluation_report.json
+      hash: md5
+      md5: e080a4bc8f0c414e7eee4574172a45a9
+      size: 362

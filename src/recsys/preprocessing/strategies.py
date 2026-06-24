@@ -70,7 +70,8 @@ class LabelEncodeStrategy(PreprocessingStrategy):
             return [self._UNKNOWN] * len(values)
 
         known_classes = set(self._encoder.classes_)
-        # Substituímos os OOV por uma classe conhecida temporariamente para o transform não falhar
+        # Substituímos os OOV por uma classe conhecida temporariamente
+        # para o transform não falhar
         safe_values = [
             v if v in known_classes else self._encoder.classes_[0] for v in values
         ]

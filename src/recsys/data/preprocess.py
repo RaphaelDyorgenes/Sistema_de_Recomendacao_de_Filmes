@@ -5,7 +5,7 @@ Etapas executadas (stage ``preprocess`` do DVC):
 2. Amostragem determinística (se configurado)
 3. Binarização: rating >= 3.5 → interação positiva (simula navegação/clique)
 4. Label-encoding de user_id e item_id para índices contíguos
-5. Split temporal em treino / validação / teste (80/10/10)
+5. Split temporal em treino / validação / teste (64/16/20)
 6. Persistência dos artefatos processados
 """
 
@@ -25,8 +25,8 @@ from recsys.utils.config import settings
 _RATING_THRESHOLD = 3.5
 
 # Proporções do split temporal.
-_TRAIN_FRAC = 0.8
-_VAL_FRAC = 0.1
+_TRAIN_FRAC = 0.64
+_VAL_FRAC = 0.16
 
 
 def run(

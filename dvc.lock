@@ -9,8 +9,8 @@ stages:
       size: 690353377
     - path: src/recsys/data/preprocess.py
       hash: md5
-      md5: cae0d21134de7622753f3d9bf8f72d71
-      size: 5108
+      md5: fc4c1a389b72ffbb598503156eb29120
+      size: 6258
     - path: src/recsys/preprocessing/strategies.py
       hash: md5
       md5: d53c11b44ac78a01a3334a2eb350d45a
@@ -22,59 +22,67 @@ stages:
     outs:
     - path: data/processed/encoders.pkl
       hash: md5
-      md5: 1c19afcf2a37e0d2a8b29a7a5b002aa5
-      size: 360122
+      md5: 3e7a009aac35dde0919abcedc34515c8
+      size: 67922
     - path: data/processed/metadata.json
       hash: md5
-      md5: 5c5ae65936bc1092d9c421ad9258009c
-      size: 59
+      md5: 7f1cd63c973d46f6e470b3f65de348f4
+      size: 58
     - path: data/processed/test.csv
       hash: md5
-      md5: 5973ef85eb6b799cb256d81f5a994cba
-      size: 164116
+      md5: af24770c62ff2fd3be8fe8bd38e52893
+      size: 234546
     - path: data/processed/train.csv
       hash: md5
-      md5: 82a98a255bea0cd65899fdca93fbfee7
-      size: 514611
+      md5: e647e7187367c09503b4df3df2489810
+      size: 735052
     - path: data/processed/val.csv
       hash: md5
-      md5: 28c4706d36d3d93036b74c3e6f84ca82
-      size: 130965
+      md5: 7c778083fcdae410f70d55239a4d65d3
+      size: 187793
   feature_eng:
     cmd: python -m recsys.data.feature_eng
     deps:
     - path: data/processed/metadata.json
       hash: md5
-      md5: 6f377595c8cabd2e70ac7f83dfc7a09e
-      size: 141
+      md5: 3f1f72289c1341e5cf864a81d828e040
+      size: 198
     - path: data/processed/train.csv
       hash: md5
-      md5: 82a98a255bea0cd65899fdca93fbfee7
-      size: 514611
+      md5: e647e7187367c09503b4df3df2489810
+      size: 735052
+    - path: data/processed/val.csv
+      hash: md5
+      md5: 7c778083fcdae410f70d55239a4d65d3
+      size: 187793
     - path: src/recsys/data/feature_eng.py
       hash: md5
-      md5: ac8c8769a9bebb7a8b47b2b71f5726d5
-      size: 3781
+      md5: afcf5f84737b6861d916cad1beb7a9a1
+      size: 5456
     outs:
     - path: data/processed/train_with_negatives.csv
       hash: md5
-      md5: 4085c149b889b4aea4f5821799245e95
-      size: 2629678
+      md5: 4325d4d8f98b9ec00e98a3d36aad2516
+      size: 3770859
+    - path: data/processed/val_with_negatives.csv
+      hash: md5
+      md5: 5de1ad938879263e63130ef26459c899
+      size: 948785
   train:
     cmd: python -m recsys.training.train
     deps:
     - path: data/processed/metadata.json
       hash: md5
-      md5: 6f377595c8cabd2e70ac7f83dfc7a09e
-      size: 141
+      md5: 3f1f72289c1341e5cf864a81d828e040
+      size: 198
     - path: data/processed/train_with_negatives.csv
       hash: md5
-      md5: 4085c149b889b4aea4f5821799245e95
-      size: 2629678
-    - path: data/processed/val.csv
+      md5: 4325d4d8f98b9ec00e98a3d36aad2516
+      size: 3770859
+    - path: data/processed/val_with_negatives.csv
       hash: md5
-      md5: 28c4706d36d3d93036b74c3e6f84ca82
-      size: 130965
+      md5: 5de1ad938879263e63130ef26459c899
+      size: 948785
     - path: src/recsys/data/dataset.py
       hash: md5
       md5: 335828c635d30dab4c170a7cb566e9a9
@@ -85,8 +93,8 @@ stages:
       size: 6415
     - path: src/recsys/training/train.py
       hash: md5
-      md5: 74f5f71f144fb16104113715476e4e9f
-      size: 6540
+      md5: d6c1b44c85d32d79d63a81dd7da52be6
+      size: 6555
     - path: src/recsys/training/trainer.py
       hash: md5
       md5: d9279a2f49ac1542b90d1dccf82dd888
@@ -94,31 +102,31 @@ stages:
     outs:
     - path: models/ncf_best.pt
       hash: md5
-      md5: e4ea03eb0adbf5b7d35c81f3ef72f657
-      size: 5786581
+      md5: 36964e773336223cd39bbc6112b5b6e2
+      size: 1111381
     - path: models/ncf_model.pt
       hash: md5
-      md5: 45aaaa4712d0b0b3be3a328222091723
-      size: 5786597
+      md5: 3189582c37fca14ddc0f197e018b1793
+      size: 1111397
   evaluate:
     cmd: python -m recsys.evaluation.evaluate
     deps:
     - path: data/processed/metadata.json
       hash: md5
-      md5: 6f377595c8cabd2e70ac7f83dfc7a09e
-      size: 141
+      md5: 3f1f72289c1341e5cf864a81d828e040
+      size: 198
     - path: data/processed/test.csv
       hash: md5
-      md5: 5973ef85eb6b799cb256d81f5a994cba
-      size: 164116
+      md5: af24770c62ff2fd3be8fe8bd38e52893
+      size: 234546
     - path: data/processed/train.csv
       hash: md5
-      md5: 82a98a255bea0cd65899fdca93fbfee7
-      size: 514611
+      md5: e647e7187367c09503b4df3df2489810
+      size: 735052
     - path: models/ncf_model.pt
       hash: md5
-      md5: 45aaaa4712d0b0b3be3a328222091723
-      size: 5786597
+      md5: 3189582c37fca14ddc0f197e018b1793
+      size: 1111397
     - path: src/recsys/evaluation/evaluate.py
       hash: md5
       md5: 4d2c0ee15f19cf3f40d91d61dcbcd745
@@ -142,5 +150,5 @@ stages:
     outs:
     - path: models/evaluation_report.json
       hash: md5
-      md5: 1d09584497840e333054918db44d02eb
-      size: 546
+      md5: 3491fd34bd2b0d84c363518aacf3c504
+      size: 495

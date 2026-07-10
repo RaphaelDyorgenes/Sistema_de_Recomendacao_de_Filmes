@@ -99,6 +99,12 @@ class Trainer:
         self.optimizer = optim.Adam(model.parameters(), lr=lr)
         self.early_stopping = EarlyStopping(patience=patience)
         self.checkpoint_dir = checkpoint_dir or settings.models_dir
+        self._best_val_loss = float("inf")
+
+    @property
+    def best_val_loss(self) -> float:
+        """Melhor loss de validação observada no último ``fit``."""
+        return self._best_val_loss
 
     def _train_epoch(self) -> float:
         """Executa uma época de treino.
@@ -148,7 +154,7 @@ class Trainer:
         """
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         best_path = self.checkpoint_dir / "ncf_best.pt"
-        best_val_loss = float("inf")
+        self._best_val_loss = float("inf")
 
         # ── Log de hiperparâmetros ──────────────────────────────
         mlflow.log_params(
@@ -175,8 +181,8 @@ class Trainer:
             )
 
             # Checkpoint do melhor modelo
-            if val_loss < best_val_loss:
-                best_val_loss = val_loss
+            if val_loss < self._best_val_loss:
+                self._best_val_loss = val_loss
                 torch.save(self.model.state_dict(), best_path)
 
             # Early stopping
@@ -186,7 +192,7 @@ class Trainer:
 
         # Carregar melhor checkpoint
         self.model.load_state_dict(torch.load(best_path, weights_only=True))
-        mlflow.log_metric("best_val_loss", best_val_loss)
-        print(f"✅ Treino concluído! Melhor val_loss: {best_val_loss:.4f}")
+        mlflow.log_metric("best_val_loss", self._best_val_loss)
+        print(f"✅ Treino concluído! Melhor val_loss: {self._best_val_loss:.4f}")
 
         return best_path

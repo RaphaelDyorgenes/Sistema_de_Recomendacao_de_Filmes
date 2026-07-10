@@ -89,7 +89,7 @@ def _build_loaders(
         Tupla ``(train_loader, val_loader)``.
     """
     train_ds = InteractionDataset(processed_dir / "train_with_negatives.csv")
-    val_ds = InteractionDataset(processed_dir / "val.csv")
+    val_ds = InteractionDataset(processed_dir / "val_with_negatives.csv")
 
     train_loader = DataLoader(
         train_ds, batch_size=batch_size, shuffle=True, num_workers=0

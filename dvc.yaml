@@ -43,6 +43,7 @@ stages:
       - src/recsys/evaluation/metrics.py
       - src/recsys/models/ncf.py
       - src/recsys/models/popularity.py
+      - src/recsys/models/user_knn.py
       - models/ncf_model.pt
       - data/processed/test.csv
       - data/processed/train.csv

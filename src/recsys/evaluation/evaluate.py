@@ -1,8 +1,11 @@
-"""Avaliação comparativa do modelo NCF contra o baseline de popularidade.
+"""Avaliação comparativa do modelo NCF contra os baselines Scikit-Learn.
 
 Stage ``evaluate`` do DVC. Gera recomendações para cada usuário do
-conjunto de teste, calcula 4 métricas de ranking e loga os resultados
-no MLflow para comparação direta.
+conjunto de teste, calcula 4 métricas de ranking por modelo e loga os
+resultados no MLflow para comparação direta.
+
+Os modelos são criados via ``ModelFactory``: adicionar um novo baseline
+exige apenas registrá-lo e incluí-lo em ``_BASELINE_NAMES``.
 """
 
 from __future__ import annotations
@@ -21,12 +24,17 @@ from recsys.evaluation.metrics import (
     precision_at_k,
     recall_at_k,
 )
+from recsys.models.base import RecommenderModel
 from recsys.models.factory import ModelFactory
 from recsys.models.ncf import NCFRecommender as _  # noqa: F401 — registra no Factory
 from recsys.models.popularity import PopularityRecommender as __  # noqa: F401
+from recsys.models.user_knn import UserKNNRecommender as ___  # noqa: F401
 from recsys.utils.config import settings
 
 _K = 10
+
+# Baselines Scikit-Learn avaliados contra o modelo neural.
+_BASELINE_NAMES = ("popularity", "user_knn")
 
 
 def _build_ground_truth(
@@ -44,6 +52,43 @@ def _build_ground_truth(
     for uid, iid in zip(test_df["user_id"], test_df["item_id"], strict=True):
         truth.setdefault(uid, set()).add(iid)
     return truth
+
+
+def _load_neural_model(meta: dict[str, int], models_dir: Path) -> RecommenderModel:
+    """Reconstrói o NCF treinado a partir do checkpoint.
+
+    Args:
+        meta: Metadados com ``n_users`` e ``n_items``.
+        models_dir: Diretório com ``ncf_model.pt``.
+
+    Returns:
+        NCF com os pesos treinados carregados.
+    """
+    ncf = ModelFactory.create(
+        "ncf",
+        n_users=meta["n_users"],
+        n_items=meta["n_items"],
+    )
+    ncf.load_state_dict(torch.load(models_dir / "ncf_model.pt", weights_only=True))
+    return ncf
+
+
+def _build_models(
+    meta: dict[str, int], models_dir: Path
+) -> dict[str, RecommenderModel]:
+    """Instancia o modelo neural e todos os baselines via Factory.
+
+    Args:
+        meta: Metadados do preprocessamento.
+        models_dir: Diretório com artefatos de modelos.
+
+    Returns:
+        Dicionário nome → modelo pronto para ``fit``/``recommend``.
+    """
+    models: dict[str, RecommenderModel] = {"ncf": _load_neural_model(meta, models_dir)}
+    for name in _BASELINE_NAMES:
+        models[name] = ModelFactory.create(name)
+    return models
 
 
 def _evaluate_model(
@@ -87,11 +132,29 @@ def _evaluate_model(
     return metrics
 
 
+def _print_report(all_metrics: dict[str, float], model_names: list[str]) -> None:
+    """Imprime a tabela comparativa de métricas por modelo.
+
+    Args:
+        all_metrics: Métricas no formato ``modelo/métrica@k``.
+        model_names: Modelos avaliados, na ordem das colunas.
+    """
+    print("📊 Resultados da avaliação:")
+    header = f"{'Métrica':<16}" + "".join(f"{name:>14}" for name in model_names)
+    print(header)
+    print("-" * len(header))
+    for metric_key in ("precision", "recall", "map", "ndcg"):
+        row = f"  {metric_key}@{_K:<11}"
+        for name in model_names:
+            row += f"{all_metrics[f'{name}/{metric_key}@{_K}']:>14.4f}"
+        print(row)
+
+
 def run(
     processed_dir: Path | None = None,
     models_dir: Path | None = None,
 ) -> None:
-    """Executa a avaliação comparativa NCF vs Popularity.
+    """Executa a avaliação comparativa NCF vs baselines.
 
     Args:
         processed_dir: Diretório com dados processados e metadados.
@@ -107,39 +170,16 @@ def run(
         meta = json.load(f)
 
     ground_truth = _build_ground_truth(test_df)
+    train_users = train_df["user_id"].tolist()
+    train_items = train_df["item_id"].tolist()
 
-    # ── NCF: carregar e gerar recomendações ─────────────────────
-    ncf = ModelFactory.create(
-        "ncf",
-        n_users=meta["n_users"],
-        n_items=meta["n_items"],
-    )
-    ncf.load_state_dict(torch.load(models_dir / "ncf_model.pt", weights_only=True))
-    ncf.fit(
-        user_ids=train_df["user_id"].tolist(),
-        item_ids=train_df["item_id"].tolist(),
-    )
-
-    ncf_preds: dict[int, list[int]] = {}
-    for uid in ground_truth:
-        ncf_preds[uid] = ncf.recommend(uid, k=_K)
-
-    # ── Popularity: treinar e gerar recomendações ───────────────
-    pop = ModelFactory.create("popularity")
-    pop.fit(
-        user_ids=train_df["user_id"].tolist(),
-        item_ids=train_df["item_id"].tolist(),
-    )
-
-    pop_preds: dict[int, list[int]] = {}
-    for uid in ground_truth:
-        pop_preds[uid] = pop.recommend(uid, k=_K)
-
-    # ── Calcular métricas ───────────────────────────────────────
-    ncf_metrics = _evaluate_model("ncf", ground_truth, ncf_preds, _K)
-    pop_metrics = _evaluate_model("popularity", ground_truth, pop_preds, _K)
-
-    all_metrics = {**ncf_metrics, **pop_metrics}
+    # ── Treinar/avaliar cada modelo genericamente ───────────────
+    models = _build_models(meta, models_dir)
+    all_metrics: dict[str, float] = {}
+    for name, model in models.items():
+        model.fit(user_ids=train_users, item_ids=train_items)
+        preds = {uid: model.recommend(uid, k=_K) for uid in ground_truth}
+        all_metrics.update(_evaluate_model(name, ground_truth, preds, _K))
 
     # ── MLflow logging ──────────────────────────────────────────
     mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
@@ -154,14 +194,7 @@ def run(
     with report_path.open("w", encoding="utf-8") as f:
         json.dump(all_metrics, f, indent=2)
 
-    print("📊 Resultados da avaliação:")
-    print(f"{'Métrica':<30} {'NCF':>10} {'Popularity':>12}")
-    print("-" * 55)
-    for metric_key in ["precision", "recall", "map", "ndcg"]:
-        ncf_val = all_metrics.get(f"ncf/{metric_key}@{_K}", 0.0)
-        pop_val = all_metrics.get(f"popularity/{metric_key}@{_K}", 0.0)
-        print(f"  {metric_key}@{_K:<22} {ncf_val:>10.4f} {pop_val:>12.4f}")
-
+    _print_report(all_metrics, list(models))
     print(f"\n✅ Relatório salvo em {report_path}")
 
 

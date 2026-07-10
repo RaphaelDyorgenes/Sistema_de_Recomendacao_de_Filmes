@@ -2,8 +2,8 @@
 
 Etapas executadas (stage ``preprocess`` do DVC):
 1. Leitura do ``rating.csv`` bruto
-2. Amostragem determinística (se configurado)
-3. Binarização: rating >= 3.5 → interação positiva (simula navegação/clique)
+2. Binarização: rating >= 3.5 → interação positiva (simula navegação/clique)
+3. Amostragem determinística por usuários ativos (se configurado)
 4. Label-encoding de user_id e item_id para índices contíguos
 5. Split temporal em treino / validação / teste (64/16/20)
 6. Persistência dos artefatos processados
@@ -27,6 +27,31 @@ _RATING_THRESHOLD = 3.5
 # Proporções do split temporal.
 _TRAIN_FRAC = 0.64
 _VAL_FRAC = 0.16
+
+# Mínimo de interações positivas para um usuário entrar na amostra.
+_MIN_USER_INTERACTIONS = 5
+
+
+def _sample_active_users(df: pd.DataFrame, sample_size: int, seed: int) -> pd.DataFrame:
+    """Amostra usuários ativos até atingir ``sample_size`` interações.
+
+    Sorteia usuários com pelo menos ``_MIN_USER_INTERACTIONS`` interações
+    e mantém o histórico completo de cada um. Amostrar linhas soltas
+    deixava ~1 interação por usuário, inviabilizando personalização.
+
+    Args:
+        df: Interações positivas com coluna ``userId``.
+        sample_size: Orçamento aproximado de interações.
+        seed: Semente para reprodutibilidade.
+
+    Returns:
+        Subconjunto de ``df`` com os históricos dos usuários sorteados.
+    """
+    counts = df["userId"].value_counts()
+    active = counts[counts >= _MIN_USER_INTERACTIONS]
+    shuffled = active.sample(frac=1.0, random_state=seed)
+    chosen = shuffled[shuffled.cumsum() <= sample_size].index
+    return df[df["userId"].isin(chosen)]
 
 
 def run(
@@ -60,15 +85,19 @@ def run(
     df = pd.read_csv(ratings_path)
     print(f"   Interações brutas: {len(df):,}")
 
-    # ── 2. Amostragem ──────────────────────────────────────────
-    if sample_size and sample_size < len(df):
-        df = df.sample(n=sample_size, random_state=seed)
-        print(f"   Amostra: {len(df):,} interações (seed={seed})")
-
-    # ── 3. Binarização ──────────────────────────────────────────
+    # ── 2. Binarização ──────────────────────────────────────────
     df = df[df["rating"] >= _RATING_THRESHOLD].copy()
     df["label"] = 1
     print(f"   Interações positivas (rating >= {_RATING_THRESHOLD}): {len(df):,}")
+
+    # ── 3. Amostragem por usuários ativos ───────────────────────
+    if sample_size and sample_size < len(df):
+        df = _sample_active_users(df, sample_size, seed)
+        n_sampled_users = df["userId"].nunique()
+        print(
+            f"   Amostra: {len(df):,} interações de "
+            f"{n_sampled_users:,} usuários (seed={seed})"
+        )
 
     # ── 4. Label Encoding ───────────────────────────────────────
     user_encoder = LabelEncodeStrategy()

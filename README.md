@@ -1,9 +1,9 @@
 # Tech Challenge — Fase 02 · Sistema de Recomendação
 
-Sistema de recomendação de produtos baseado no comportamento de navegação
-dos usuários. Uma rede neural (NCF — Neural Collaborative Filtering, em
-PyTorch) é comparada a baselines de Scikit-Learn, com pipeline
-reprodutível em DVC, experimentos e Model Registry no MLflow.
+Sistema de recomendação de filmes baseado no histórico de avaliações dos
+usuários (MovieLens-20M). Uma rede neural (NCF — Neural Collaborative
+Filtering, em PyTorch) é comparada a baselines de Scikit-Learn, com
+pipeline reprodutível em DVC, experimentos e Model Registry no MLflow.
 
 Documentação do modelo: [Model Card](docs/MODEL_CARD.md).
 
@@ -47,9 +47,9 @@ poetry run python scripts/validate_env.py
 
 ## Obtenção dos dados
 
-O projeto usa o MovieLens-20M como proxy de navegação de e-commerce
-(avaliação >= 3.5 é tratada como interesse no produto). O download é
-feito via kagglehub:
+O projeto usa o MovieLens-20M, com 20 milhões de avaliações de filmes
+(avaliação >= 3.5 é tratada como "o usuário gostou do filme"). O
+download é feito via kagglehub:
 
 ```bash
 poetry run python -m recsys.data.download_data

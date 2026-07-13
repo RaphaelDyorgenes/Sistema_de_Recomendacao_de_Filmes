@@ -2,10 +2,10 @@
 
 ## Visão geral
 
-Modelo de recomendação de produtos baseado em **Neural Collaborative
-Filtering (NCF)**: embeddings de usuário e item concatenados e passados
-por um MLP que estima a probabilidade de interação. Treinado com PyTorch
-e versionado no MLflow Model Registry.
+Modelo de recomendação de filmes baseado em **Neural Collaborative
+Filtering (NCF)**: embeddings de usuário e filme concatenados e passados
+por um MLP que estima a probabilidade de o usuário gostar do título.
+Treinado com PyTorch e versionado no MLflow Model Registry.
 
 - **Versão em produção:** `ncf-recommender` v2 (estágio *Production*)
 - **Run de origem:** `ncf-emb16` (menor loss de validação entre os
@@ -32,9 +32,8 @@ dados.
 
 ## Dados
 
-- **Fonte:** MovieLens-20M (20M de avaliações), usado como *proxy* de
-  navegação de e-commerce: avaliação ≥ 3.5 é tratada como interação
-  positiva (interesse no "produto").
+- **Fonte:** MovieLens-20M (20M de avaliações de filmes): avaliação
+  ≥ 3.5 é tratada como interação positiva (o usuário gostou do filme).
 - **Amostragem:** 99.905 interações de 1.174 usuários ativos (mínimo de
   5 interações por usuário, histórico completo preservado), 7.263 itens.
 - **Split temporal:** 64% treino / 16% validação / 20% teste, ordenado
@@ -73,9 +72,6 @@ mais dados e mais sinais de contexto.
 4. **Amostra pequena por design:** 100k interações (0.5% do dataset)
    para viabilizar treino local em CPU; as métricas não devem ser
    extrapoladas para o dataset completo.
-5. **Proxy de domínio:** avaliações de filmes simulam navegação de
-   e-commerce; a transferência de conclusões para um catálogo real exige
-   validação com dados reais de navegação.
 
 ## Vieses potenciais
 

@@ -32,16 +32,17 @@ configs/          # configuracoes externas
 ## Instalação
 
 ```bash
-# 1. Instale o Poetry (se ainda não tiver)
+# 1. Instalar o Poetry (caso ainda não esteja instalado).
+# Nota para Windows: se o comando 'poetry' não for reconhecido, use 'python -m poetry'
 pip install poetry
 
-# 2. Na raiz do repositório, instale as dependências
+# 2. Na raiz do repositório, instalar as dependências
 poetry install
 
-# 3. Crie o arquivo de configuração local
+# 3. Criar o arquivo de configuração local
 cp .env.example .env        # Windows: copy .env.example .env
 
-# 4. Valide o ambiente
+# 4. Validar o ambiente
 poetry run python scripts/validate_env.py
 ```
 
@@ -57,7 +58,7 @@ poetry run python -m recsys.data.download_data
 
 Os CSVs ficam em `data/raw/` (cerca de 700 MB para o `rating.csv`).
 
-## Executando o pipeline (DVC)
+## Executar o pipeline (DVC)
 
 ```bash
 poetry run dvc repro
@@ -125,7 +126,7 @@ docker compose up --build
 ```
 
 - MLflow UI: http://localhost:5000
-- `data/` e `models/` são montados como volumes — rode o download dos
+- `data/` e `models/` são montados como volumes — rodar o download dos
   dados e o `dvc repro` até `feature_eng` no host antes.
 
 ## Testes e qualidade
@@ -137,7 +138,7 @@ poetry run ruff format .      # formatacao
 poetry run pre-commit install # hooks de lint no commit
 ```
 
-## Reproduzindo os resultados do zero
+## Reproduzir os resultados do zero
 
 ```bash
 poetry install
@@ -150,3 +151,10 @@ poetry run python -m recsys.training.registry
 A reprodutibilidade é garantida por sementes fixas (`RANDOM_SEED=42`,
 aplicada a PyTorch e NumPy), dados versionados com DVC e todos os runs
 rastreados no MLflow.
+
+## 👥 Autores
+
+| Nome                                | Função no Projeto                               |
+| :---------------------------------- | :---------------------------------------------- |
+| **Mateus de Souza Nascimento**      | Analyst / DevOps / Data Scientist / ML Engineer |
+| **Raphael Dyorgenes Vitor**         | Analyst / DevOps / Data Scientist / ML Engineer |
